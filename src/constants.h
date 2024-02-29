@@ -11,6 +11,8 @@
 
 #define BALL_WIDTH 20
 #define BALL_HEIGHT 20
+#define BALL_INIT_X_SPEED 10
+#define BALL_INIT_Y_SPEED 10
 
 #define PLAYER_WIDTH 5
 #define PLAYER_HEIGHT 50

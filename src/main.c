@@ -1,6 +1,7 @@
 // Copyright [2024] Cameron Dudd
 
 #include "./constants.h"
+#include "./math.h"
 
 #include <SDL2/SDL.h>
 #include <stdio.h>
@@ -72,8 +73,8 @@ void process_input() {
 void setup() {
   ball.x = 20;
   ball.y = 20;
-  ball.speed_x = 0;
-  ball.speed_y = 0;
+  ball.speed_x = BALL_INIT_X_SPEED;
+  ball.speed_y = BALL_INIT_Y_SPEED;
   ball.width = BALL_WIDTH;
   ball.height = BALL_HEIGHT;
   player1.x = PLAYER_HOR_OFFSET;

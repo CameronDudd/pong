@@ -11,7 +11,7 @@ SDL_Renderer *renderer = NULL;
 
 int last_frame_time = 0;
 
-struct paddle {
+struct player {
   float x;
   float y;
   float width;
@@ -27,8 +27,8 @@ struct ball {
   float height;
 } ball;
 
-struct paddle player1;
-struct paddle player2;
+struct player player1;
+struct player player2;
 
 int initialize_window(void) {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -65,22 +65,6 @@ void process_input() {
       player2.y -= 20;
     if (event.key.keysym.sym == SDLK_DOWN)
       player2.y += 20;
-    if (event.key.keysym.sym == SDLK_LEFT)
-      player2.x -= 20;
-    if (event.key.keysym.sym == SDLK_RIGHT)
-      player2.x += 20;
-    break;
-  case SDL_KEYUP:
-    if (event.key.keysym.sym == SDLK_ESCAPE)
-      game_is_running = FALSE;
-    if (event.key.keysym.sym == SDLK_UP)
-      ball.speed_y = 0;
-    if (event.key.keysym.sym == SDLK_DOWN)
-      ball.speed_y = 0;
-    if (event.key.keysym.sym == SDLK_LEFT)
-      ball.speed_x = 0;
-    if (event.key.keysym.sym == SDLK_RIGHT)
-      ball.speed_x = 0;
     break;
   }
 }

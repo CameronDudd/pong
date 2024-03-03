@@ -1,10 +1,10 @@
 // Copyright 2024 Cameron Dudd
 
-#include "./constants.h"
-#include "./math.h"
-
 #include <SDL2/SDL.h>
 #include <stdio.h>
+
+#include "./constants.h"
+#include "./math.h"
 
 int PLAYER_MAX_HEIGHT = (int)WINDOW_HEIGHT - PLAYER_HOR_OFFSET - PLAYER_HEIGHT;
 
@@ -44,35 +44,35 @@ void process_input() {
   SDL_PollEvent(&event);
 
   switch (event.type) {
-  case SDL_QUIT:
-    game_is_running = FALSE;
-    break;
-  case SDL_KEYDOWN:
-    if (event.key.keysym.sym == SDLK_ESCAPE) {
+    case SDL_QUIT:
       game_is_running = FALSE;
-    } else {
-      switch (event.key.keysym.scancode) {
-      case 26: // w
-        player1.y = int_max(player1.y - PLAYER_SPEED, PLAYER_VER_OFFSET);
-        break;
-      case 22: // s
-        player1.y = int_min(player1.y + PLAYER_SPEED, PLAYER_MAX_HEIGHT);
-        break;
-      case 82: // up
-        player2.y = int_max(player2.y - PLAYER_SPEED, PLAYER_VER_OFFSET);
-        break;
-      case 81: // down
-        player2.y = int_min(player2.y + PLAYER_SPEED, PLAYER_MAX_HEIGHT);
-        break;
-      case 41: // escape
+      break;
+    case SDL_KEYDOWN:
+      if (event.key.keysym.sym == SDLK_ESCAPE) {
         game_is_running = FALSE;
-        break;
-      default:
-        fprintf(stderr, "%d\n", event.key.keysym.scancode);
-        break;
+      } else {
+        switch (event.key.keysym.scancode) {
+          case 26:  // w
+            player1.y = int_max(player1.y - PLAYER_SPEED, PLAYER_VER_OFFSET);
+            break;
+          case 22:  // s
+            player1.y = int_min(player1.y + PLAYER_SPEED, PLAYER_MAX_HEIGHT);
+            break;
+          case 82:  // up
+            player2.y = int_max(player2.y - PLAYER_SPEED, PLAYER_VER_OFFSET);
+            break;
+          case 81:  // down
+            player2.y = int_min(player2.y + PLAYER_SPEED, PLAYER_MAX_HEIGHT);
+            break;
+          case 41:  // escape
+            game_is_running = FALSE;
+            break;
+          default:
+            fprintf(stderr, "%d\n", event.key.keysym.scancode);
+            break;
+        }
       }
-    }
-    break;
+      break;
   }
 }
 
@@ -128,13 +128,14 @@ void update() {
 
   last_frame_time = SDL_GetTicks();
 
-  if (ball_paddle_collision(&ball, &player1) || // hor collisions with paddles
-      ball_paddle_collision(&ball, &player2)) {
+  if (ball_paddle_collision(&ball, &player1) && ball.speed_x < 0) {
     ball.speed_x = -ball.speed_x * 1.02;
-  } else if (ball.y <= 0 || // ver collision with edge
+  } else if (ball_paddle_collision(&ball, &player2) && ball.speed_x > 0) {
+    ball.speed_x = -ball.speed_x * 1.02;
+  } else if (ball.y <= 0 ||  // ver collision with edge
              ball.y + BALL_HEIGHT >= WINDOW_HEIGHT) {
     ball.speed_y = -ball.speed_y;
-  } else if (ball.x <= 0 || // hor collision with edge
+  } else if (ball.x <= 0 ||  // hor collision with edge
              ball.x + BALL_WIDTH >= WINDOW_WIDTH) {
     init_pos();
   }

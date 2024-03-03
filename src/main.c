@@ -1,4 +1,4 @@
-// Copyright [2024] Cameron Dudd
+// Copyright 2024 Cameron Dudd
 
 #include "./constants.h"
 #include "./math.h"
@@ -6,30 +6,18 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 
+int PLAYER_MAX_HEIGHT = (int)WINDOW_HEIGHT - PLAYER_HOR_OFFSET - PLAYER_HEIGHT;
+
 int game_is_running = FALSE;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
+int tmp_int;
 int last_frame_time = 0;
-
-struct player {
-  float x;
-  float y;
-  float width;
-  float height;
-};
-
-struct ball {
-  float x;
-  float y;
-  float speed_x;
-  float speed_y;
-  float width;
-  float height;
-} ball;
 
 struct player player1;
 struct player player2;
+struct ball ball;
 
 int initialize_window(void) {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -60,35 +48,72 @@ void process_input() {
     game_is_running = FALSE;
     break;
   case SDL_KEYDOWN:
-    if (event.key.keysym.sym == SDLK_ESCAPE)
+    if (event.key.keysym.sym == SDLK_ESCAPE) {
       game_is_running = FALSE;
-    if (event.key.keysym.sym == SDLK_UP)
-      player2.y -= 20;
-    if (event.key.keysym.sym == SDLK_DOWN)
-      player2.y += 20;
+    } else {
+      switch (event.key.keysym.scancode) {
+      case 26: // w
+        player1.y = int_max(player1.y - PLAYER_SPEED, PLAYER_VER_OFFSET);
+        break;
+      case 22: // s
+        player1.y = int_min(player1.y + PLAYER_SPEED, PLAYER_MAX_HEIGHT);
+        break;
+      case 82: // up
+        player2.y = int_max(player2.y - PLAYER_SPEED, PLAYER_VER_OFFSET);
+        break;
+      case 81: // down
+        player2.y = int_min(player2.y + PLAYER_SPEED, PLAYER_MAX_HEIGHT);
+        break;
+      case 41: // escape
+        game_is_running = FALSE;
+        break;
+      default:
+        fprintf(stderr, "%d\n", event.key.keysym.scancode);
+        break;
+      }
+    }
     break;
   }
 }
 
-void setup() {
-  ball.x = 20;
-  ball.y = 20;
-  ball.speed_x = BALL_INIT_X_SPEED;
-  ball.speed_y = BALL_INIT_Y_SPEED;
+void init_ball() {
+  ball.x = ((float)WINDOW_WIDTH - (float)BALL_WIDTH) / 2;
+  ball.y = ((float)WINDOW_HEIGHT - (float)BALL_HEIGHT) / 2;
   ball.width = BALL_WIDTH;
   ball.height = BALL_HEIGHT;
+}
+
+void launch_ball() {
+  bool should_move_left = rand_val(0, 1) == 1;
+  int speed_direction = should_move_left ? -1 : 1;
+  ball.speed_x = speed_direction * BALL_INIT_X_SPEED;
+  ball.speed_y = BALL_INIT_Y_SPEED;
+}
+
+void init_player1() {
   player1.x = PLAYER_HOR_OFFSET;
   player1.y = PLAYER_HOR_OFFSET;
   player1.width = PLAYER_WIDTH;
   player1.height = PLAYER_HEIGHT;
+}
+
+void init_player2() {
   player2.x = WINDOW_WIDTH - PLAYER_HOR_OFFSET - PLAYER_WIDTH;
-  player2.y = (int)(WINDOW_HEIGHT / 2) - PLAYER_HOR_OFFSET - PLAYER_HEIGHT;
+  player2.y = (int)(WINDOW_HEIGHT / 2) - PLAYER_VER_OFFSET - PLAYER_HEIGHT;
   player2.width = PLAYER_WIDTH;
   player2.height = PLAYER_HEIGHT;
 }
 
-void update() {
+void init_pos() {
+  init_ball();
+  init_player1();
+  init_player2();
+  launch_ball();
+}
 
+void setup() { init_pos(); }
+
+void update() {
   // Sleep the execution until we reach the target frame time in milliseconds
   int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - last_frame_time);
 
@@ -103,11 +128,19 @@ void update() {
 
   last_frame_time = SDL_GetTicks();
 
+  if (ball_paddle_collision(&ball, &player1) || // hor collisions with paddles
+      ball_paddle_collision(&ball, &player2)) {
+    ball.speed_x = -ball.speed_x * 1.02;
+  } else if (ball.y <= 0 || // ver collision with edge
+             ball.y + BALL_HEIGHT >= WINDOW_HEIGHT) {
+    ball.speed_y = -ball.speed_y;
+  } else if (ball.x <= 0 || // hor collision with edge
+             ball.x + BALL_WIDTH >= WINDOW_WIDTH) {
+    init_pos();
+  }
+
   ball.x += ball.speed_x * delta_time;
   ball.y += ball.speed_y * delta_time;
-
-  fprintf(stdout, "Player 1: %f, %f Player 2: %f %f\n", player1.x, player1.y,
-          player2.x, player2.y);
 }
 
 void render() {
